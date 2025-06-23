@@ -4,213 +4,281 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>RAVERSUS Eye Analysis</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script> 
   <style>
-    /* Apply Inter font */
-    body {
-      font-family: 'Inter', sans-serif;
+    * {
       margin: 0;
       padding: 0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+      box-sizing: border-box;
+    }
+
+    body, html {
+      height: 100%;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    #app {
+      width: 100%;
+      height: 100vh;
       overflow: hidden;
     }
 
-    .page {
-      display: none;
-      width: 100vw;
-      min-height: 100vh;
-      padding: 1.5rem;
-      box-sizing: border-box;
+    /* LANDING PAGE */
+    .landing {
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: white;
+      display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       text-align: center;
-      flex-direction: column;
-      transition: opacity 0.5s ease-in-out;
-      opacity: 0;
-      position: absolute;
-      top: 0;
-      left: 0;
+      height: 100vh;
     }
 
-    .page.active {
+    .logo {
+      font-size: 3rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .btn-start {
+      padding: 15px 30px;
+      background-color: #00c9ff;
+      background-image: linear-gradient(135deg, #00c9ff, #92fe9d);
+      border: none;
+      border-radius: 30px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .btn-start:hover {
+      transform: scale(1.05);
+    }
+
+    /* CAMERA CAPTURE */
+    .camera-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: black;
       display: flex;
-      opacity: 1;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px;
     }
 
-    .spinner {
-      border: 8px solid rgba(255, 255, 255, 0.3);
-      border-top: 8px solid #4ade80;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      animation: spin 1.5s linear infinite;
+    video {
+      width: 100%;
+      max-width: 400px;
+      border-radius: 10px;
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    .btn-capture {
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-size: 1rem;
+      cursor: pointer;
     }
 
-    .app-button {
-      @apply px-8 py-3 mt-8 text-lg font-semibold rounded-full shadow-lg transition-all duration-300 ease-in-out transform;
+    /* LOADING ANALYSIS */
+    .loading {
+      background: #1e1e2f;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
     }
 
-    .app-button:hover {
-      @apply scale-105 shadow-xl;
+    .progress-bar {
+      width: 80%;
+      height: 20px;
+      background: #444;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 20px 0;
     }
 
-    .app-button-primary {
-      @apply bg-white text-purple-700 hover:bg-gray-100;
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(to right, #00c9ff, #92fe9d);
+      animation: growProgress 4s forwards;
     }
 
-    .app-button-secondary {
-      @apply bg-purple-500 text-white hover:bg-purple-600;
+    @keyframes growProgress {
+      from { width: 0%; }
+      to { width: 100%; }
     }
 
-    #analysisResults {
-      justify-content: flex-start;
-      align-items: flex-start;
-      text-align: left;
+    /* ANALYSIS RESULTS */
+    .results {
+      background: #f5f7fa;
+      color: #333;
+      padding: 20px;
+      height: 100vh;
       overflow-y: auto;
     }
 
-    #camera-feed-placeholder {
-      max-width: 90vw;
-      max-height: 50vh;
-      width: auto;
-      height: auto;
-      object-fit: contain;
-      border-radius: 0.75rem;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    .result-section {
+      margin-bottom: 30px;
     }
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    p {
+      line-height: 1.5;
+    }
+
+    ul {
+      list-style-position: inside;
+      padding-left: 1em;
+    }
+
   </style>
 </head>
-<body class="bg-gray-50 text-gray-900">
-  <div id="app-container" class="relative min-h-screen w-screen">
-    <!-- 1. Landing Page -->
-    <div id="landingPage" class="page bg-gradient-to-br from-indigo-600 to-purple-800 text-white active">
-      <div class="space-y-6 max-w-2xl mx-auto">
-        <h1 class="text-6xl md:text-8xl font-extrabold tracking-tight drop-shadow-lg">RAVERSUS</h1>
-        <p class="text-2xl md:text-3xl font-light opacity-90 leading-relaxed">Unlocking the Secrets of Your Eye for Holistic Wellness</p>
-        <button id="startAnalysisBtn" class="app-button app-button-primary">Start Your Eye Analysis</button>
-      </div>
-    </div>
-
-    <!-- 2. Camera Capture Page -->
-    <div id="cameraCapture" class="page bg-gray-100 text-gray-800">
-      <div class="space-y-6 max-w-2xl mx-auto">
-        <h2 class="text-4xl font-bold mb-6 text-indigo-700">Capture Your Eye</h2>
-        <div class="relative w-full aspect-video bg-gray-300 rounded-xl overflow-hidden flex items-center justify-center shadow-lg">
-          <img id="camera-feed-placeholder"
-               src="https://placehold.co/600x400/D1D5DB/4B5563?text=Eye+Capture+Area"
-               alt="Camera Feed Placeholder"
-               class="w-full h-full object-cover">
-          <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 text-white text-lg font-medium rounded-xl">
-            Simulated Camera Feed
-          </div>
-        </div>
-        <p class="text-lg text-gray-600 mt-4">Position your eye clearly in the frame.</p>
-        <button id="takePhotoBtn" class="app-button app-button-secondary">Take Photo</button>
-      </div>
-    </div>
-
-    <!-- 3. Loading Analysis Page -->
-    <div id="loadingAnalysis" class="page bg-gray-900 text-white">
-      <div class="space-y-6 max-w-lg mx-auto flex flex-col items-center">
-        <div class="spinner"></div>
-        <h2 class="text-4xl font-bold mt-6">Analyzing Your Eyes...</h2>
-        <p class="text-lg opacity-80">Please wait while our AI processes your unique eye signature.</p>
-        <div class="w-full bg-gray-700 rounded-full h-2.5 mt-4">
-          <div id="progressBar" class="bg-green-400 h-2.5 rounded-full" style="width: 0%"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 4. Analysis Results Page -->
-    <div id="analysisResults" class="page bg-white text-gray-800 p-8 md:p-12">
-      <div class="w-full max-w-4xl mx-auto space-y-10">
-        <h2 class="text-5xl font-extrabold text-purple-700 mb-8 text-center">Your RAVERSUS Analysis</h2>
-
-        <!-- Iridology Findings Section -->
-        <section class="bg-purple-50 p-6 rounded-2xl shadow-xl border border-purple-200">
-          <h3 class="text-3xl font-bold text-purple-600 mb-4 flex items-center">
-            <svg class="w-8 h-8 mr-3 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.01 12.01 0 002.944 12c.046 2.059.565 4.034 1.41 5.865a11.925 11.925 0 007.411 2.575 11.925 11.925 0 007.411-2.575c.845-1.831 1.364-3.806 1.41-5.865a12.01 12.01 0 00-3.096-7.056z"></path></svg>
-            Iridology Findings
-          </h3>
-          <ul class="list-disc list-inside text-lg text-gray-700 space-y-2">
-            <li><strong class="text-indigo-600">Minor Pigmentation in Iris:</strong> Indicates a slight predisposition to liver detoxification challenges. (Severity: Low)</li>
-            <li><strong class="text-indigo-600">Stress Rings Observed:</strong> Suggests a history of nervous tension or stress accumulation. (Severity: Moderate)</li>
-            <li><strong class="text-indigo-600">Slight Lymphatic Congestion:</strong> Evident by a subtle "cloudiness" in the lymphatic zone. (Severity: Low)</li>
-            <li><strong class="text-indigo-600">Digestive Zone Weakness:</strong> A subtle radial furrowing in the digestive area indicates potential for occasional digestive discomfort. (Severity: Moderate)</li>
-          </ul>
-          <p class="mt-4 text-sm text-gray-500 italic">*Note: Iridology is a complementary health assessment tool and not a diagnostic method. Consult a healthcare professional for medical advice.*</p>
-        </section>
-
-        <!-- Treatment Recommendations Section -->
-        <section class="bg-green-50 p-6 rounded-2xl shadow-xl border border-green-200">
-          <h3 class="text-3xl font-bold text-green-600 mb-4 flex items-center">
-            <svg class="w-8 h-8 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4.343 19.657l-.707.707M1 12h1m6.364-1.636l-.707-.707M12 21v-1m-6.364-1.636l-.707-.707M3 12l-.707.707"></path></svg>
-            Personalized Recommendations
-          </h3>
-          <ul class="list-disc list-inside text-lg text-gray-700 space-y-2">
-            <li><strong class="text-emerald-600">Liver Support:</strong> Incorporate more bitter greens (dandelion, arugula), turmeric, and lemon water into your diet.</li>
-            <li><strong class="text-emerald-600">Stress Management:</strong> Practice daily mindfulness meditation or deep breathing exercises for 10-15 minutes. Consider herbal adaptogens like Ashwagandha.</li>
-            <li><strong class="text-emerald-600">Lymphatic Drainage:</strong> Engage in light exercise like brisk walking or rebounding. Dry brushing before showering can also be beneficial.</li>
-            <li><strong class="text-emerald-600">Digestive Health:</strong> Focus on probiotic-rich foods (yogurt, kimchi), fermented vegetables, and chew food thoroughly. Consider digestive enzyme support.</li>
-            <li><strong class="text-emerald-600">Hydration:</strong> Increase daily water intake to at least 8 glasses, preferably filtered.</li>
-          </ul>
-        </section>
-
-        <button id="backToHomeBtn" class="app-button app-button-secondary w-full">Back to Home</button>
-      </div>
-    </div>
-  </div>
+<body>
+  <div id="app"></div>
 
   <script>
-    const landingPage = document.getElementById('landingPage');
-    const cameraCapture = document.getElementById('cameraCapture');
-    const loadingAnalysis = document.getElementById('loadingAnalysis');
-    const analysisResults = document.getElementById('analysisResults');
+    const app = document.getElementById("app");
+    let currentScreen = "landing";
+    let capturedImage = null;
 
-    const startAnalysisBtn = document.getElementById('startAnalysisBtn');
-    const takePhotoBtn = document.getElementById('takePhotoBtn');
-    const backToHomeBtn = document.getElementById('backToHomeBtn');
-    const progressBar = document.getElementById('progressBar');
-
-    let currentPage = 'landingPage';
-
-    function showPage(pageId) {
-      document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-      const targetPage = document.getElementById(pageId);
-      if (targetPage) {
-        targetPage.classList.add('active');
-        currentPage = pageId;
-      }
-
-      if (pageId === 'loadingAnalysis') {
-        progressBar.style.width = '0%';
-        let progress = 0;
-        const interval = setInterval(() => {
-          progress += Math.random() * 10;
-          if (progress > 100) progress = 100;
-          progressBar.style.width = `${progress}%`;
-        }, 150);
-
-        setTimeout(() => {
-          clearInterval(interval);
-          showPage('analysisResults');
-        }, 3000);
+    function render() {
+      app.innerHTML = "";
+      switch (currentScreen) {
+        case "landing":
+          showLanding();
+          break;
+        case "camera":
+          showCamera();
+          break;
+        case "loading":
+          showLoading();
+          break;
+        case "results":
+          showResults();
+          break;
       }
     }
 
-    startAnalysisBtn.addEventListener('click', () => showPage('cameraCapture'));
-    takePhotoBtn.addEventListener('click', () => showPage('loadingAnalysis'));
-    backToHomeBtn.addEventListener('click', () => showPage('landingPage'));
+    function showLanding() {
+      const div = document.createElement("div");
+      div.className = "landing";
+      div.innerHTML = `
+        <div class="logo">RAVERSUS</div>
+        <p>Unlock insights through your eyes</p>
+        <button class="btn-start" onclick="navigateTo('camera')">Start Analysis</button>
+      `;
+      app.appendChild(div);
+    }
 
-    window.onload = () => showPage(currentPage);
+    function showCamera() {
+      const container = document.createElement("div");
+      container.className = "camera-container";
+
+      const video = document.createElement("video");
+      video.id = "video";
+      video.autoplay = true;
+      video.playsInline = true;
+
+      const captureBtn = document.createElement("button");
+      captureBtn.textContent = "Take Photo";
+      captureBtn.className = "btn-capture";
+      captureBtn.onclick = () => {
+        capturePhoto(video);
+        navigateTo("loading");
+      };
+
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+          video.srcObject = stream;
+        })
+        .catch(err => {
+          alert("Camera access denied or not available.");
+          console.error(err);
+        });
+
+      container.appendChild(video);
+      container.appendChild(captureBtn);
+      app.appendChild(container);
+    }
+
+    function capturePhoto(video) {
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      capturedImage = canvas.toDataURL("image/png");
+    }
+
+    function showLoading() {
+      const div = document.createElement("div");
+      div.className = "loading";
+      div.innerHTML = `
+        <h1>Analyzing Your Eye...</h1>
+        <div class="progress-bar">
+          <div class="progress-fill"></div>
+        </div>
+        <p>Please wait while our AI decodes your health indicators.</p>
+      `;
+      setTimeout(() => {
+        navigateTo("results");
+      }, 4000);
+      app.appendChild(div);
+    }
+
+    function showResults() {
+      const div = document.createElement("div");
+      div.className = "results";
+
+      const resultContent = `
+        <div class="result-section">
+          <h2>🔍 Iridology Findings</h2>
+          <p><strong>Eye Color:</strong> Dark Brown</p>
+          <p><strong>Pigmentation Patterns:</strong> Moderate radial striations in the iris, suggesting potential sensitivity to stress and digestive imbalance.</p>
+          <p><strong>Zone Mapping:</strong> Notable markings in the liver zone (lower inner quadrant), possibly indicating detoxification needs.</p>
+        </div>
+
+        <div class="result-section">
+          <h2>💊 Treatment Recommendations</h2>
+          <ul>
+            <li>Increase water intake and fiber-rich foods for better digestion.</li>
+            <li>Consider adaptogenic herbs like Ashwagandha for stress regulation.</li>
+            <li>Include more cruciferous vegetables to support liver function.</li>
+            <li>Practice mindfulness techniques such as deep breathing or meditation.</li>
+          </ul>
+        </div>
+
+        <div class="result-section">
+          <h2>📸 Captured Image</h2>
+          <img src="${capturedImage || '#'}" alt="Captured Eye" style="max-width: 100%; border-radius: 10px;" />
+        </div>
+
+        <button onclick="navigateTo('landing')" style="padding: 10px 20px; background: #007BFF; color: white; border: none; border-radius: 20px;">Back to Home</button>
+      `;
+
+      div.innerHTML = resultContent;
+      app.appendChild(div);
+    }
+
+    function navigateTo(screen) {
+      currentScreen = screen;
+      render();
+    }
+
+    // Initial render
+    render();
   </script>
 </body>
 </html>
